@@ -1,0 +1,41 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "updated": "2025-10-13"
+  },
+  "basePerItem_A6": 5.5,
+  "sizeK": {
+    "A6": 1.0,
+    "A5": 1.9,
+    "A4": 3.8,
+    "A3": 7.6,
+    "EURO": 1.1
+  },
+  "printK": {
+    "single": 1.0,
+    "double": 1.18
+  },
+  "stockSurchargePerItem": {
+    "gloss": 0.0,
+    "matte": 0.0,
+    "ccg": 0.2,
+    "dns": 0.0
+  },
+  "gsmSurchargePerItem": {
+    "130": 0.0,
+    "170": 0.2,
+    "200": 0.3,
+    "300": 1.4
+  },
+  "designFee": {
+    "template": 0,
+    "none": 0,
+    "premium": 2000
+  },
+  "urgencyK": {
+    "standard": 1.0,
+    "urgent": 1.2,
+    "express": 1.8
+  },
+  "vat": 0.2
+}

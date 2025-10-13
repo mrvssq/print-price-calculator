@@ -1,0 +1,193 @@
+/* =========
+   ТЕМА
+   ========= */
+:root{
+  --bg:#0d1117;          /* фон страницы */
+  --card:#161b22;        /* фон карточек */
+  --text:#e6edf3;        /* основной текст */
+  --text-2:#c9d1d9;      /* вторичный текст */
+  --text-3:#9da7b3;      /* третичный текст */
+  --border:#30363d;      /* границы */
+  --accent:#8ab4ff;      /* ссылки и акцент */
+  --accent-2:#b6d2ff;    /* hover */
+  --accent-strong:#00e5a8; /* дополнительный акцент */
+  --input:#0f141a;       /* поля ввода */
+}
+
+html,body{background:var(--bg);color:var(--text)}
+.card{background:var(--card);border:1px solid var(--border)}
+.form-label{font-weight:600;color:var(--text)}
+.price-xl{font-size:2rem;font-weight:800;color:var(--text)}
+.muted{color:var(--text-3);opacity:1}
+.option-pill .btn{border-radius:999px}
+.sticky-summary{position:sticky;top:1rem}
+.divider{border-top:1px dashed var(--border);margin:.5rem 0}
+.badge-soft{background:#0f1722;border:1px solid var(--border);color:var(--text-2)}
+.qty-input{max-width:260px}
+.small-note{font-size:.86rem;color:var(--text-3)}
+a{color:var(--accent);text-decoration:none}
+a:hover{color:var(--accent-2)}
+
+/* Таблицы */
+.table-dark{
+  --bs-table-bg: var(--card);
+  --bs-table-border-color: var(--border);
+  --bs-table-color: var(--text);
+}
+.table-dark td,.table-dark th{background-color:var(--card);color:var(--text);border-color:var(--border)}
+.table-active{background-color:#1d2633 !important}
+
+/* Формы */
+.form-control,.form-select{background:var(--input);color:var(--text);border:1px solid var(--border)}
+.form-control:focus,.form-select:focus{border-color:var(--accent);box-shadow:none}
+.input-group-text{background:var(--input);color:var(--text-2);border:1px solid var(--border)}
+::placeholder{color:var(--text-3)}
+.form-check-label{color:var(--text)}
+.form-check-input{background-color:transparent;border:1px solid var(--text-2)}
+.form-check-input:checked{background-color:var(--accent-strong);border-color:var(--accent-strong)}
+.form-check-input:focus{box-shadow:none;border-color:var(--accent)}
+
+/* Кнопки */
+.btn-outline-light{color:var(--text);border-color:var(--text-2)}
+.btn-outline-light:hover{background:var(--text);color:var(--bg)}
+.btn-primary{border-color:#4c7cff}
+
+/* Лаконичный акцент */
+.accent-bar{height:3px;background:linear-gradient(90deg,var(--accent-strong),transparent);border-radius:3px}
+
+/* =============
+   Оверлей блокировки
+   ============= */
+.lock-overlay{
+  position:absolute;
+  inset:0;
+  background:rgba(13,17,23,.85);
+  color:var(--text);
+  z-index:50;
+  display:none !important;   /* жёстко скрыто по умолчанию */
+  backdrop-filter:saturate(80%) blur(1px);
+}
+.lock-overlay.show{ display:flex !important; }
+.lock-overlay .spinner-border{--bs-spinner-width:2rem;--bs-spinner-height:2rem}
+
+/* Бейдж тестов (размер) */
+.test-badge{font-size:.8rem}
+
+/* =========
+   ПЕЧАТЬ / PDF
+   ========= */
+@media print {
+
+  /* Гарантируем, что цвета не инвертируются */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Светлая чистая тема для печати */
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif !important;
+  }
+
+  /* Карточки, таблицы, итоги — белые с чёрным текстом */
+  .card,
+  .table,
+  .table-dark,
+  .table-active {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+  }
+
+  /* Таблица — чёткие линии и читаемые цифры */
+  .table-dark td,
+  .table-dark th {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-color: #000000 !important;
+  }
+  .table-active {
+    background: #f2f2f2 !important;
+  }
+
+  /* Основные тексты */
+  .form-label,
+  .price-xl,
+  .muted,
+  .badge-soft,
+  label,
+  td, th {
+    color: #000000 !important;
+  }
+  .badge,
+  span {
+    color: #FFFFFF !important;
+  }
+
+  /* Ссылки и кнопки в печати не нужны */
+  a, a:hover {
+    color: #000000 !important;
+    text-decoration: none !important;
+  }
+
+  /* Скрываем всё, что не нужно в PDF */
+  .accent-bar,
+  #devPanel,
+  #devPricesDetails,
+  #testBadge,
+  #btnShare,
+  #btnReset,
+  #btnLoadDevPrices,
+  .lock-overlay,
+  .btn,
+  .option-pill .btn,
+  .tooltip,
+  .popover {
+    display: none !important;
+  }
+
+  /* Формы отображаем как текст (чтобы было видно выбранное) */
+  input, select, textarea {
+    border: none !important;
+    background: transparent !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  /* Заголовки и цифры крупнее для читаемости */
+  h1, h2, h3, h4 {
+    color: #000000 !important;
+  }
+
+  .price-xl {
+    font-size: 24pt !important;
+    font-weight: bold !important;
+  }
+
+  /* Выровняем таблицу итогов под PDF */
+  table.table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  #configBlock {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Разделитель */
+  .divider {
+    border-top: 2px solid #000000 !important;
+  }
+
+  /* Мелкие примечания чуть серее */
+  .small-note {
+    color: #333333 !important;
+  }
+}
+
