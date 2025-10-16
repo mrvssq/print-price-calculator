@@ -176,7 +176,7 @@
                       <label class="form-label">Тираж</label>
                       <div class="row g-2">
                         <div class="col-sm-6">
-                          <input id="qty" type="number" class="form-control" min="1" maxlength="10" step="1" value="100" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)||'1'">
+                          <input id="qty" type="number" class="form-control" min="0" value="100">
                         </div>
                         <div class="col-sm-6">
                           <select id="qtyPreset" class="form-select">
@@ -261,7 +261,7 @@
                             <td class="text-end" id="linePerItem">—</td>
                           </tr>
                           <tr>
-                            <td>Срочность</td>
+                            <td>Срок изготовления</td>
                             <td class="text-end" id="lineUrgency">—</td>
                           </tr>
                           <tr class="receipt-total">

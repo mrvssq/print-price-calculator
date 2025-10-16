@@ -262,59 +262,45 @@ function computeTotal(s){
   const baseMatrix = B.basePerItemSingle || {};
   const baseSingle = +((baseMatrix?.[s.size]||{})[String(s.gsm)] ?? 0);
 
-  // Мультипликаторы (без дизайна/срочности — они позже)
-  const printK = (s.print === 'double') ? +(B.doublePrintMultiplier ?? 1.40)
-                                        : 1.0;
+  // Мультипликаторы (без дизайна/срочности)
+  const printK = (s.print === 'double') ? +(B.doublePrintMultiplier ?? 1.40) : 1.0;
   const lamK   = s.lamination ? +(O.laminationMultiplier ?? 1.40) : 1.0;
-  const stockK = (s.stock === 'designer') ? +(O.designerPaperMultiplier ?? 1.30)
-                                          : 1.0; // gloss/matte = 1.0
+  const stockK = (s.stock === 'designer') ? +(O.designerPaperMultiplier ?? 1.30) : 1.0; // gloss/matte = 1
 
   // Поштучные надбавки
   const roundedAddPerItem  = s.rounded ? +(O.roundedCornersPerItem ?? 2.0) : 0;
   const creasingAddPerItem = (+(O.creasingPerLine ?? 3.0)) * (s.creasing || 0);
 
-  // Цена за 1 лист выбранного формата (БЕЗ дизайна/срочности)
+  // Цена за 1 лист выбранного формата (без дизайна/срочности)
   const perItemRaw = baseSingle * stockK * printK * lamK + roundedAddPerItem + creasingAddPerItem;
 
   const qty = Math.max(1, Math.floor(+s.qty || 1));
+  const grossRaw = perItemRaw * qty;
 
-  // ---------- Минимальная тарификация "как за A4" ----------
-  // Считаем "минимально биллингуемые" листы A4 для малых форматов:
-  const fit = unitsPerA4(s.size);
-  let floorMinTotal = 0;
+  // ---------- Порог "не ниже 1 A4" (той же плотности и опций) ----------
+  let grossBeforeDiscount = grossRaw;
   let floorApplied = false;
 
-  if (fit > 0 && s.size !== 'A4') {
-    // Цена одного A4 с теми же опциями (кроме дизайна/срочности)
+  if (s.size !== 'A4' && s.size !== 'A3') {
     const baseSingleA4 = +((baseMatrix?.['A4']||{})[String(s.gsm)] ?? 0);
     const perItemA4 = baseSingleA4 * stockK * printK * lamK + roundedAddPerItem + creasingAddPerItem;
+    const a4Floor = perItemA4; // всегда ровно 1 лист A4
 
-    // Сколько "A4-пачек" нужно для покрытия qty штук данного формата
-    const packsA4 = Math.ceil(qty / fit);
-    floorMinTotal = perItemA4 * packsA4;
-
-    // Обычная сумма по выбранному формату
-    const grossRaw = perItemRaw * qty;
-
-    // Если обычная сумма меньше "минимальной как A4" — поднимаем до floor
-    if (grossRaw < floorMinTotal) {
+    if (grossRaw < a4Floor) {
+      grossBeforeDiscount = a4Floor;
       floorApplied = true;
     }
   }
 
-  // Фактическая сумма до скидки
-  const grossBeforeDiscount = floorApplied ? floorMinTotal : (perItemRaw * qty);
-
-  // Эффективная "цена за 1 лист" для чека — это реальная тарифицируемая средняя,
-  // чтобы в чеке не было "1 А6 по цене как A4" без отражения этого в per-item
+  // Эффективная цена за шт (для чека) — фактическая тарифицируемая средняя
   const effectivePerItemForReceipt = grossBeforeDiscount / qty;
 
-  // Скидка по сумме (плавная) — берём продуктовую секцию
+  // Скидка по сумме (плавная)
   const discRate      = discountRateByAmount(grossBeforeDiscount, CONF);
   const discountValue = grossBeforeDiscount * discRate;
   const afterDiscount = grossBeforeDiscount - discountValue;
 
-  // Дизайн (premium = 1500 и т.п.) — добавляется после скидки и до срочности
+  // Дизайн
   const designFee = +(
     (CONF.fees?.designFee?.[s.design]) ??
     (PRICES?.shared?.fees?.designFee?.[s.design]) ?? 0
@@ -327,32 +313,27 @@ function computeTotal(s){
   const total = subtotal * urgencyK;
 
   if (DEV_HINT && floorApplied) {
-    console.info('[leaflets] Минимальная тарификация: формат', s.size,
-                 'qty=', qty, '→ взята сумма как за A4:', floorMinTotal.toFixed(2));
+    console.info('[leaflets] Применён порог 1×A4: size=', s.size,
+      'qty=', qty, 'grossRaw=', grossRaw.toFixed(2),
+      '→ floor=', (grossBeforeDiscount).toFixed(2));
   }
 
   return {
-    // "сырые" значения:
-    perItem: effectivePerItemForReceipt,    // для чека (итог за 1 лист без дизайна/срочности)
+    perItem: effectivePerItemForReceipt, // для чека (без дизайна/срочности)
     qty,
-
-    // для справки/диагностики:
-    perItemRaw,                              // на 1 лист выбранного формата (до floor)
+    perItemRaw,                          // справочно
     floorApplied,
     grossBeforeDiscount,
-
-    // скидки
     discount: discRate,
     discountValue,
     afterDiscount,
-
-    // доплаты
     designFee,
     urgencyK,
-
-    subtotal, total
+    subtotal,
+    total
   };
 }
+
 
 
 
@@ -398,7 +379,24 @@ function recalc(){
   $('#lineDesign').text(r.designFee>0?fmtMoney(r.designFee):'—');
   $('#total').text(fmtMoney(r.total));
 
-  $('#eta').text('Время готовности: ' + calcETA(s.urgency) + (DEV_HINT?` (${Intl.DateTimeFormat().resolvedOptions().timeZone})`:''));  
+  // ETA: calcETA уже возвращает локализованную строку
+    const etaVal  = calcETA(s.urgency);
+    const etaDate = etaVal instanceof Date ? etaVal : new Date(etaVal);
+    const etaText = new Intl.DateTimeFormat('ru-RU', {
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      weekday: 'short',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).format(etaDate);
+    
+    $('#eta').text(
+      'Время готовности: ' + etaText +
+      (DEV_HINT ? ` (${Intl.DateTimeFormat().resolvedOptions().timeZone})` : '')
+    );
 
   if(DEV_HINT && $priceJson()){
     $priceJson().textContent = JSON.stringify(PRICES,null,2);
@@ -475,7 +473,7 @@ $(document).on('change input','input,select',function(){
     $('#qtyPreset').val([1,10,50,100,200,500,1000].includes(v)?String(v):'custom');
     // ограничение на 10 цифр
     const raw = String($('#qty').val()||'').replace(/\D/g,'').slice(0,10);
-    $('#qty').val(raw || '1');
+    //$('#qty').val(raw || '1');
   }
   updateUrlFromState(readState());
   recalc();

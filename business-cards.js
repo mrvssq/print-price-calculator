@@ -331,7 +331,23 @@
     $('#total').text(fmtMoney(r.total));
 
     // ETA: calcETA уже возвращает локализованную строку
-    $('#eta').text('Время готовности: ' + calcETA(s.urgency));
+    const etaVal  = calcETA(s.urgency);
+    const etaDate = etaVal instanceof Date ? etaVal : new Date(etaVal);
+    const etaText = new Intl.DateTimeFormat('ru-RU', {
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      weekday: 'short',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).format(etaDate);
+    
+    $('#eta').text(
+      'Время готовности: ' + etaText +
+      (DEV_HINT ? ` (${Intl.DateTimeFormat().resolvedOptions().timeZone})` : '')
+    );
   }
 
   function recalc(){
