@@ -323,3 +323,19 @@ html.theme-transition * {
   #sidebarCol, .offcanvas { display: none !important; }
   #pageMain { width: 100% !important; max-width: 100% !important; }
 }
+
+/* Универсальный стек, где ₽ гарантированно есть */
+:root{
+  --currency-safe: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+                   Arial, "Noto Sans", "DejaVu Sans", "Liberation Sans",
+                   "Segoe UI Symbol", sans-serif;
+}
+
+/* Применим к чеку и ключевым ячейкам */
+#totalBlock .receipt-table td,
+#totalBlock .receipt-table th,
+#totalBlock .receipt-total th,
+#totalBlock #total,
+#totalBlock #linePerItem {
+  font-family: var(--currency-safe);
+}

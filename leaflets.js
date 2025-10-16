@@ -251,81 +251,109 @@ function resolveBaseSingle(CONF, s){
 }
 
 
-// ================== CALC (leaflets, без НДС) ==================
-// ================== CALC (leaflets, без НДС, новая модель) ==================
+// ================== CALC (leaflets) ==================
 function computeTotal(s){
   if(!CONF) throw new Error('Цены не загружены');
 
-  // Правила:
-  // - База = цена за лист по size+gsm (односторонняя)
-  // - Печать "двухсторонняя" = * printK.double (по умолчанию 1.4)
-  // - Ламинация = * laminationMultiplier (по умолчанию 1.4)
-  // - Дизайнерская бумага = * designerPaperK (по умолчанию 1.3)
-  // - Углы = + roundedCornersPerItem (по умолчанию 2 руб/лист)
-  // - Беговка = + creasingPerLine * lines (по умолчанию 3 руб/линия)
-  // - Скидка — плавная по сумме (CONF.discountByAmount)
-  // - Срочность — в самом конце (* urgencyK.express = 1.5)
-  // - Дизайн — добавка фикс (premium = 1500), затем умножение на срочность
+  const B = CONF.base || {};
+  const O = CONF.options || {};
 
-  const baseMatrix = CONF.base?.basePerItem || {};               // { size: { gsm: priceSingle } }
-  const baseSingle = resolveBaseSingle(CONF, s);
+  // База single по size+gsm
+  const baseMatrix = B.basePerItemSingle || {};
+  const baseSingle = +((baseMatrix?.[s.size]||{})[String(s.gsm)] ?? 0);
 
-  // Мультипликаторы
-  const mPrint = s.print === 'double'
-    ? +(CONF.base?.printK?.double ?? 1.4)
-    : +(CONF.base?.printK?.single ?? 1.0);
-
-  const mLam = s.lamination
-    ? +(CONF.options?.laminationMultiplier ?? 1.4)
-    : 1.0;
-
-  const mStock = (s.stock === 'designer')
-    ? +(CONF.options?.designerPaperK ?? 1.3)
-    : 1.0; // gloss/matte = 1.0
+  // Мультипликаторы (без дизайна/срочности — они позже)
+  const printK = (s.print === 'double') ? +(B.doublePrintMultiplier ?? 1.40)
+                                        : 1.0;
+  const lamK   = s.lamination ? +(O.laminationMultiplier ?? 1.40) : 1.0;
+  const stockK = (s.stock === 'designer') ? +(O.designerPaperMultiplier ?? 1.30)
+                                          : 1.0; // gloss/matte = 1.0
 
   // Поштучные надбавки
-  const roundedAdd  = s.rounded ? +(CONF.options?.roundedCornersPerItem ?? 2) : 0;
-  const creasingAdd = (+(CONF.options?.creasingPerLine ?? 3)) * (s.creasing || 0);
+  const roundedAddPerItem  = s.rounded ? +(O.roundedCornersPerItem ?? 2.0) : 0;
+  const creasingAddPerItem = (+(O.creasingPerLine ?? 3.0)) * (s.creasing || 0);
 
-  // Цена за 1 лист
-  const perItem = baseSingle * mStock * mPrint * mLam + roundedAdd + creasingAdd;
+  // Цена за 1 лист выбранного формата (БЕЗ дизайна/срочности)
+  const perItemRaw = baseSingle * stockK * printK * lamK + roundedAddPerItem + creasingAddPerItem;
 
-  // Кол-во
-  const qty = Math.max(1, Math.floor(s.qty));
+  const qty = Math.max(1, Math.floor(+s.qty || 1));
 
-  // Сумма до скидок
-  const gross = perItem * qty;
+  // ---------- Минимальная тарификация "как за A4" ----------
+  // Считаем "минимально биллингуемые" листы A4 для малых форматов:
+  const fit = unitsPerA4(s.size);
+  let floorMinTotal = 0;
+  let floorApplied = false;
 
-  // Плавная скидка по сумме (своя для листовок)
-  const discRate   = discountRateByAmount(gross, CONF);
-  const discountValue = gross * discRate;
-  const afterDiscount = gross - discountValue;
+  if (fit > 0 && s.size !== 'A4') {
+    // Цена одного A4 с теми же опциями (кроме дизайна/срочности)
+    const baseSingleA4 = +((baseMatrix?.['A4']||{})[String(s.gsm)] ?? 0);
+    const perItemA4 = baseSingleA4 * stockK * printK * lamK + roundedAddPerItem + creasingAddPerItem;
 
-  // Дизайн (premium = 1500), берём из продукта, иначе из shared
+    // Сколько "A4-пачек" нужно для покрытия qty штук данного формата
+    const packsA4 = Math.ceil(qty / fit);
+    floorMinTotal = perItemA4 * packsA4;
+
+    // Обычная сумма по выбранному формату
+    const grossRaw = perItemRaw * qty;
+
+    // Если обычная сумма меньше "минимальной как A4" — поднимаем до floor
+    if (grossRaw < floorMinTotal) {
+      floorApplied = true;
+    }
+  }
+
+  // Фактическая сумма до скидки
+  const grossBeforeDiscount = floorApplied ? floorMinTotal : (perItemRaw * qty);
+
+  // Эффективная "цена за 1 лист" для чека — это реальная тарифицируемая средняя,
+  // чтобы в чеке не было "1 А6 по цене как A4" без отражения этого в per-item
+  const effectivePerItemForReceipt = grossBeforeDiscount / qty;
+
+  // Скидка по сумме (плавная) — берём продуктовую секцию
+  const discRate      = discountRateByAmount(grossBeforeDiscount, CONF);
+  const discountValue = grossBeforeDiscount * discRate;
+  const afterDiscount = grossBeforeDiscount - discountValue;
+
+  // Дизайн (premium = 1500 и т.п.) — добавляется после скидки и до срочности
   const designFee = +(
-    (CONF?.designFee?.[s.design]) ??
-    (PRICES?.shared?.fees?.designFee?.[s.design]) ??
-    0
+    (CONF.fees?.designFee?.[s.design]) ??
+    (PRICES?.shared?.fees?.designFee?.[s.design]) ?? 0
   );
 
-  // Срочность в самом конце
+  // Срочность — в самом конце
   const urgencyK = +(CONF.urgencyK?.[s.urgency] ?? 1.0);
 
   const subtotal = afterDiscount + designFee;
   const total = subtotal * urgencyK;
 
+  if (DEV_HINT && floorApplied) {
+    console.info('[leaflets] Минимальная тарификация: формат', s.size,
+                 'qty=', qty, '→ взята сумма как за A4:', floorMinTotal.toFixed(2));
+  }
+
   return {
-    perItem, qty,
-    discount:     discRate,
+    // "сырые" значения:
+    perItem: effectivePerItemForReceipt,    // для чека (итог за 1 лист без дизайна/срочности)
+    qty,
+
+    // для справки/диагностики:
+    perItemRaw,                              // на 1 лист выбранного формата (до floor)
+    floorApplied,
+    grossBeforeDiscount,
+
+    // скидки
+    discount: discRate,
     discountValue,
     afterDiscount,
-    urgencyK,
-    afterUrgency: subtotal * urgencyK, // совместимость с вашим UI (не используется отдельно)
+
+    // доплаты
     designFee,
-    total,
-    adds: { roundedAdd, creasingAdd, stockMult: mStock, printMult: mPrint, lamMult: mLam }
+    urgencyK,
+
+    subtotal, total
   };
 }
+
 
 
 // ================== RENDER ==================
@@ -477,6 +505,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+// Сколько штук данного формата "вмещается" в один A4 (для минимальной тарификации)
+// A6 → 4, A5 → 2, EURO ~ 3, A4 → 1, A3 → 0 (не применяем порог A4 для A3)
+function unitsPerA4(size){
+  switch(size){
+    case 'A6':  return 4;
+    case 'A5':  return 2;
+    case 'EURO':return 3;   // прибл. 3 на А4
+    case 'A4':  return 1;
+    default:    return 0;   // A3 и прочее — без порога A4
+  }
+}
+
 
 // ================== PRINT ONLY RECEIPT ==================
 
