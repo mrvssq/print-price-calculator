@@ -122,6 +122,33 @@
     if (el) el.textContent = text || '';
   }
 
+    // ——— пластик: без ламинации и без скругления ———
+  function normalizeOptionsByMaterial(s){
+    if (s.material === 'plastic'){
+      s.lamination = false;
+      s.rounded = false;
+    }
+    return s;
+  }
+
+  function applyMaterialOptionAvailability(material){
+    const isPlastic = material === 'plastic';
+
+    const lam = document.getElementById('lamination');
+    const rnd = document.getElementById('rounded');
+
+    if (lam){
+      if (isPlastic) lam.checked = false;
+      lam.disabled = isPlastic;
+      lam.closest('.form-check, .form-switch, .btn')?.classList.toggle('disabled', isPlastic);
+    }
+    if (rnd){
+      if (isPlastic) rnd.checked = false;
+      rnd.disabled = isPlastic;
+      rnd.closest('.form-check, .form-switch, .btn')?.classList.toggle('disabled', isPlastic);
+    }
+  }
+
   // ===== URL <-> State =====
   function readState() {
     const pick = (name, def) => $('input[name="'+name+'"]:checked').val() || def;
@@ -131,16 +158,18 @@
     const { qtyNorm, hint } = evalQtyForMaterial(qtyRaw, material);
     setQtyHint(hint);
 
-    return {
-      size:      pick('size','90x50'),         // '90x50' | '60x60'
-      print:     pick('print','single'),       // 'single' | 'double'
-      material,                                 // 'paper300' | 'designer' | 'plastic'
+    const s = {
+      size:     pick('size','90x50'),
+      print:    pick('print','single'),
+      material: pick('material','paper300'),
       lamination: $('#lamination').is(':checked'),
       rounded:    $('#rounded').is(':checked'),
-      urgency:    $('#urgency').val() || 'oneday', // 'oneday' | 'express'
-      design:     $('input[name="design"]:checked').val() || 'none',
-      qty:        qtyNorm                       // ВАЖНО: число!
+      urgency:  $('#urgency').val() || 'oneday',
+      design:   $('input[name="design"]:checked').val() || 'none',
+      qty:      evalQtyForMaterial($('#qty').val(), pick('material','paper300')).qtyNorm
     };
+
+    return normalizeOptionsByMaterial(s);
   }
 
   function queryToState() {
@@ -150,7 +179,7 @@
 
     const { qtyNorm } = evalQtyForMaterial(qtyRaw, material);
 
-    return {
+    const s = {
       size:      q.get('size')     || '90x50',
       print:     q.get('print')    || 'single',
       material,
@@ -160,7 +189,16 @@
       design:     q.get('design')  || 'none',
       qty:        qtyNorm
     };
+
+    return normalizeOptionsByMaterial(s);
   }
+
+  $(document).on('change','input[name="material"]', function(){
+    const s = readState();                 // тут lam/rnd уже сброшены для plastic
+    applyMaterialOptionAvailability(s.material);
+    updateUrlFromState(stateToQuery(s));
+    recalc();
+  });
 
   function stateToQuery(s) {
     const q = new URLSearchParams(location.search);
@@ -389,6 +427,7 @@
     check('size', s.size);
     check('print', s.print);
     check('material', s.material);
+    applyMaterialOptionAvailability(s.material);
     $('#lamination').prop('checked', !!s.lamination);
     $('#rounded').prop('checked', !!s.rounded);
     $('#urgency').val(s.urgency);
