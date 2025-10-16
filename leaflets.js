@@ -34,7 +34,7 @@ let CONF   = null;   // слитая конфа конкретного прод�
 
 const DEFAULTS = {
   design:  'none',
-  size:    'A6',
+  size:    'A4',
   print:   'single',
   stock:   'gloss',
   gsm:     '300',

@@ -160,7 +160,7 @@
 
     const s = {
       size:     pick('size','90x50'),
-      print:    pick('print','single'),
+      print:    pick('print','double'),
       material: pick('material','paper300'),
       lamination: $('#lamination').is(':checked'),
       rounded:    $('#rounded').is(':checked'),
@@ -181,7 +181,7 @@
 
     const s = {
       size:      q.get('size')     || '90x50',
-      print:     q.get('print')    || 'single',
+      print:     q.get('print')    || 'double',
       material,
       lamination: truthy(q.get('lam')),
       rounded:    truthy(q.get('rnd')),
