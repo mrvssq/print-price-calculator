@@ -1,276 +1,403 @@
 <!doctype html>
 <html lang="ru" data-bs-theme="light">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Калькулятор — Листовки</title>
-
-  <!-- Bootstrap 5 (CSS) -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-  <!-- Твои (опциональные) общие стили, если нужны -->
-  <link rel="stylesheet" href="./app.css">
-</head>
-<body class="min-vh-100">
-<div class="container py-4 position-relative">
-
-  <!-- Хедер -->
-  <header class="d-flex align-items-center justify-content-between mb-3">
-    <h1 class="h4 m-0">Калькулятор — <span class="text-primary">Листовки</span></h1>
-    <div class="d-flex align-items-center gap-2">
-      <span id="testBadge" class="badge text-bg-secondary d-none">Тесты не запускались</span>
-      <button id="themeToggle" type="button" class="btn btn-outline-secondary btn-sm">
-        Тема: <span id="themeLabel">Light</span>
-      </button>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Калькулятор — Флаеры, Листовки, Буклеты</title>
+    <!-- Bootstrap 5 (CSS) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Твои (опциональные) общие стили, если нужны -->
+    <link rel="stylesheet" href="./app.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  </head>
+  <body>
+    <!-- Offcanvas меню слева -->
+    <div class="offcanvas offcanvas-start" id="calcOffcanvas" tabindex="-1" id="calcOffcanvas" aria-labelledby="calcOffcanvasLabel">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="calcOffcanvasLabel">Калькуляторы</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Закрыть"></button>
+      </div>
+      <div class="offcanvas-body">
+        <nav class="list-group">
+          <a id="mLinkCards" class="list-group-item list-group-item-action" href="business-cards.html">Визитки</a>
+          <a id="mLinkLeaflets" class="list-group-item list-group-item-action" href="leaflets.html">Листовки</a>
+        </nav>
+      </div>
     </div>
-  </header>
-
-  <!-- Оверлей блокировки -->
-  <div id="lockOverlay"
-       class="position-fixed top-0 start-0 w-100 h-100 d-none align-items-center justify-content-center"
-       style="z-index:1050; backdrop-filter:saturate(80%) blur(1px); background-color:rgba(0,0,0,.5);">
-    <div class="text-center text-light">
-      <div class="spinner-border mb-3" role="status" aria-hidden="true"></div>
-      <div class="fs-5" id="lockMessage">Загружаем цены…</div>
-      <div class="small text-warning mt-1" id="lockHint"></div>
-      <div id="devPanel" class="mt-3 d-none">
-        <input id="priceFile" type="file" accept="application/json" class="d-none">
-        <button id="btnLoadDevPrices" type="button" class="btn btn-outline-light btn-sm">
-          Загрузить prices.dev.json
+    <!-- Top navbar -->
+    <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom mb-3">
+      <div class="container-fluid">
+        <!-- Кнопка открытия offcanvas (мобилка/планшет) -->
+        <button class="btn btn-outline-secondary me-2 d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#calcOffcanvas" aria-controls="calcOffcanvas">
+          <i class="bi bi-list"></i>
+          <!-- можно заменить на <span class="fa fa-bars"></span> если используешь Font Awesome -->
         </button>
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-3" id="configBlock">
-    <!-- Левая колонка: опции -->
-    <div class="col-lg-8">
-      <div class="card">
-        <div class="card-body">
-          <h2 class="h6 mb-3">Параметры</h2>
-
-          <!-- Дизайн -->
-          <div class="mb-3">
-            <label class="form-label">Дизайн</label>
-            <div class="d-flex gap-3 flex-wrap">
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="design" id="design_none" value="none" checked>
-                <label class="form-check-label" for="design_none">Есть макет</label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="design" id="design_template" value="template">
-                <label class="form-check-label" for="design_template">Шаблон</label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="design" id="design_premium" value="premium">
-                <label class="form-check-label" for="design_premium">Индивидуальный</label>
-              </div>
-            </div>
-          </div>
-
-          <!-- Размер -->
-          <div class="mb-3">
-            <label class="form-label">Размер</label>
-            <div class="d-flex gap-3 flex-wrap">
-              <div class="form-check"><input class="form-check-input" type="radio" name="size" id="size_A6" value="A6" checked><label class="form-check-label" for="size_A6">A6</label></div>
-              <div class="form-check"><input class="form-check-input" type="radio" name="size" id="size_A5" value="A5"><label class="form-check-label" for="size_A5">A5</label></div>
-              <div class="form-check"><input class="form-check-input" type="radio" name="size" id="size_A4" value="A4"><label class="form-check-label" for="size_A4">A4</label></div>
-              <div class="form-check"><input class="form-check-input" type="radio" name="size" id="size_A3" value="A3"><label class="form-check-label" for="size_A3">A3</label></div>
-              <div class="form-check"><input class="form-check-input" type="radio" name="size" id="size_EURO" value="EURO"><label class="form-check-label" for="size_EURO">Евро (210×98)</label></div>
-            </div>
-          </div>
-
-          <!-- Печать -->
-          <div class="mb-3">
-            <label class="form-label" for="print">Печать</label>
-            <select id="print" class="form-select">
-              <option value="single">Односторонняя</option>
-              <option value="double">Двусторонняя</option>
-            </select>
-          </div>
-
-          <!-- Тип бумаги -->
-          <div class="mb-3">
-            <label class="form-label">Бумага</label>
-            <div class="d-flex gap-3 flex-wrap">
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="stock" id="stock_gloss" value="gloss" checked>
-                <label class="form-check-label" for="stock_gloss">Глянцевая</label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="stock" id="stock_matte" value="matte">
-                <label class="form-check-label" for="stock_matte">Матовая</label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input"
-                       type="radio" name="stock" id="stock_designer" value="designer"
-                       data-bs-toggle="tooltip" data-bs-placement="top"
-                       title="Дизайнерская бумага: спец. фактуры и покрытия (SoftTouch, тиснение, текстуры). Премиальный вид.">
-                <label class="form-check-label" for="stock_designer">Дизайнерская</label>
-              </div>
-            </div>
-          </div>
-
-          <!-- Плотность -->
-          <div class="mb-3">
-            <label class="form-label">Плотность бумаги</label>
-            <div class="d-flex gap-3 flex-wrap">
-              <div class="form-check"><input class="form-check-input" type="radio" name="gsm" id="gsm_80" value="80"><label class="form-check-label" for="gsm_80">80</label></div>
-              <div class="form-check"><input class="form-check-input" type="radio" name="gsm" id="gsm_115" value="115"><label class="form-check-label" for="gsm_115">115</label></div>
-              <div class="form-check"><input class="form-check-input" type="radio" name="gsm" id="gsm_150" value="150"><label class="form-check-label" for="gsm_150">150</label></div>
-              <div class="form-check"><input class="form-check-input" type="radio" name="gsm" id="gsm_200" value="200"><label class="form-check-label" for="gsm_200">200</label></div>
-              <div class="form-check"><input class="form-check-input" type="radio" name="gsm" id="gsm_300" value="300" checked><label class="form-check-label" for="gsm_300">300</label></div>
-            </div>
-          </div>
-
-          <!-- Ламинация -->
-          <div class="mb-3">
-            <label class="form-label">Ламинация</label>
-            <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" id="lamination">
-              <label class="form-check-label" for="lamination">Включить ламинацию</label>
-            </div>
-          </div>
-
-          <!-- Беговка -->
-          <div class="mb-3">
-            <label class="form-label" for="creasing">Беговка</label>
-            <select id="creasing" class="form-select">
-              <option value="0">Выкл</option>
-              <option value="1">1 беговка</option>
-              <option value="2">2 беговки</option>
-              <option value="3">3 беговки</option>
-            </select>
-          </div>
-
-          <!-- Закругление углов -->
-          <div class="mb-3">
-            <label class="form-label">Углы</label>
-            <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" id="rounded">
-              <label class="form-check-label" for="rounded">Закруглённые углы</label>
-            </div>
-          </div>
-
-          <!-- Тираж -->
-          <div class="mb-3">
-            <label class="form-label">Тираж</label>
-            <div class="row g-2">
-              <div class="col-sm-6">
-                <input id="qty" type="number" class="form-control" min="1" maxlength="10" step="1" value="100" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)||'1'">
-              </div>
-              <div class="col-sm-6">
-                <select id="qtyPreset" class="form-select">
-                  <option value="custom">Произвольно…</option>
-                  <option value="1">1 шт.</option>
-                  <option value="10">10 шт.</option>
-                  <option value="50">50 шт.</option>
-                  <option value="100" selected>100 шт.</option>
-                  <option value="200">200 шт.</option>
-                  <option value="500">500 шт.</option>
-                  <option value="1000">1000 шт.</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-text">Можно указать <strong>даже 1 лист</strong>.</div>
-          </div>
-
-          <!-- Срок -->
-          <div class="mb-1">
-            <label class="form-label" for="urgency">Срок изготовления</label>
-            <select id="urgency" class="form-select">
-              <option value="oneday">1 рабочий день</option>
-              <option value="express">2–3 часа (+50%)</option>
-            </select>
-          </div>
+        <!-- Лого/бренд -->
+        <a class="navbar-brand d-flex align-items-center gap-2" href="leaflets.html">
+          <!-- <img src="https://getbootstrap.com/docs/5.3/assets/brand/bootstrap-logo.svg" alt="" width="28" height="22" class="d-inline-block"> --> Мультисервис Калькулятор
+        </a>
+        <!-- Правая зона: аватар-меню + поиск (как в твоём примере) -->
+        <div class="d-flex align-items-center ms-auto gap-2">
+          <button id="themeToggle" type="button" class="btn btn-outline-secondary btn-sm"> Тема: <span id="themeLabel">Light</span>
+          </button>
         </div>
       </div>
-    </div>
-
-    <!-- Правая колонка: ИТОГО -->
-    <div class="col-lg-4">
-      <div id="totalBlock" class="card" data-updated="">
-        <div class="card-body">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <span class="badge text-bg-secondary">ИТОГО</span>
-            <div class="btn-group btn-group-sm">
-              <button id="btnShare" class="btn btn-outline-secondary">Поделиться</button>
-              <button id="btnDownload" class="btn btn-outline-primary">Скачать спецификацию (PDF)</button>
+    </nav>
+    <!-- Левый стационарный сайдбар (для ≥ lg) + контент -->
+    <div class="container-fluid">
+      <div class="row g-3">
+        <aside id="sidebarCol" class="col-lg-3 d-none d-lg-block">
+          <nav class="card position-sticky" style="top:1rem">
+            <div class="list-group list-group-flush">
+              <a id="linkCards" class="list-group-item list-group-item-action" href="business-cards.html">Визитки</a>
+              <a id="linkLeaflets" class="list-group-item list-group-item-action" href="leaflets.html">Листовки</a>
             </div>
+          </nav>
+        </aside>
+        <main class="col-lg-9">
+          <div>
+            <!-- Хедер -->
+            <header class="d-flex align-items-center justify-content-between mb-3">
+              <h1 class="h4 m-0">Калькулятор — <span class="text-primary">Флаеры, Листовки, Буклеты</span>
+              </h1>
+            </header>
+            <!-- Оверлей блокировки -->
+            <div id="lockOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-none align-items-center justify-content-center" style="z-index:1050; backdrop-filter:saturate(80%) blur(1px); background-color:rgba(0,0,0,.5);">
+              <div class="text-center text-light">
+                <div class="spinner-border mb-3" role="status" aria-hidden="true"></div>
+                <div class="fs-5" id="lockMessage">Загружаем цены…</div>
+                <div class="small text-warning mt-1" id="lockHint"></div>
+                <div id="devPanel" class="mt-3 d-none">
+                  <input id="priceFile" type="file" accept="application/json" class="d-none">
+                  <button id="btnLoadDevPrices" type="button" class="btn btn-outline-light btn-sm"> Загрузить prices.dev.json </button>
+                </div>
+              </div>
+            </div>
+            <div class="row g-3" id="configBlock">
+              <!-- Левая колонка: опции -->
+              <div class="col-lg-8">
+                <div class="card">
+                  <div class="card-body">
+                    <h2 class="h6 mb-3">Параметры</h2>
+                    <!-- Дизайн -->
+                    <div class="mb-3">
+                      <label class="form-label">Дизайн</label>
+                      <div class="btn-group flex-wrap" role="group" aria-label="Дизайн">
+                        <input type="radio" class="btn-check" name="design" id="design_none" value="none" autocomplete="off" checked>
+                        <label class="btn btn-outline-secondary btn-radio" for="design_none">Есть макет</label>
+                        <input type="radio" class="btn-check" name="design" id="design_premium" value="premium" autocomplete="off">
+                        <label class="btn btn-outline-secondary btn-radio" for="design_premium">Индивидуальный</label>
+                      </div>
+                    </div>
+                    <!-- Размер -->
+                    <div class="mb-3">
+                      <label class="form-label">Размер</label>
+                      <div class="btn-group flex-wrap" role="group" aria-label="Размер">
+                        <input type="radio" class="btn-check" name="size" id="size_A6" value="A6" autocomplete="off" checked>
+                        <label class="btn btn-outline-secondary btn-radio" for="size_A6">A6</label>
+                        <input type="radio" class="btn-check" name="size" id="size_A5" value="A5" autocomplete="off">
+                        <label class="btn btn-outline-secondary btn-radio" for="size_A5">A5</label>
+                        <input type="radio" class="btn-check" name="size" id="size_A4" value="A4" autocomplete="off">
+                        <label class="btn btn-outline-secondary btn-radio" for="size_A4">A4</label>
+                        <input type="radio" class="btn-check" name="size" id="size_A3" value="A3" autocomplete="off">
+                        <label class="btn btn-outline-secondary btn-radio" for="size_A3">A3</label>
+                        <input type="radio" class="btn-check" name="size" id="size_EURO" value="EURO" autocomplete="off">
+                        <label class="btn btn-outline-secondary btn-radio" for="size_EURO">Евро (210×98)</label>
+                      </div>
+                    </div>
+                    <!-- Печать -->
+                    <div class="mb-3">
+                      <label class="form-label">Печать</label>
+                      <div class="btn-group flex-wrap" role="group" aria-label="Печать">
+                        <input type="radio" class="btn-check" name="print" id="print_single" value="single" autocomplete="off" checked>
+                        <label class="btn btn-outline-primary btn-radio" for="print_single">Односторонняя</label>
+                        <input type="radio" class="btn-check" name="print" id="print_double" value="double" autocomplete="off">
+                        <label class="btn btn-outline-primary btn-radio" for="print_double">Двусторонняя</label>
+                      </div>
+                    </div>
+                    <!-- Пример: Бумага (аналогично добавь btn-radio на все label) -->
+                    <!-- ... -->
+                    <!-- Бумага -->
+                    <div class="mb-3">
+                      <label class="form-label">Бумага</label>
+                      <div class="btn-group flex-wrap" role="group" aria-label="Бумага">
+                        <input type="radio" class="btn-check" name="stock" id="stock_gloss" value="gloss" autocomplete="off" checked>
+                        <label class="btn btn-outline-secondary btn-radio" for="stock_gloss">Глянец</label>
+                        <input type="radio" class="btn-check" name="stock" id="stock_matte" value="matte" autocomplete="off">
+                        <label class="btn btn-outline-secondary btn-radio" for="stock_matte">Матовая</label>
+                        <input type="radio" class="btn-check" name="stock" id="stock_designer" value="designer" autocomplete="off" data-bs-toggle="tooltip" data-bs-placement="top" title="Дизайнерская: фактуры/покрытия (SoftTouch и т.п.), премиальный вид.">
+                        <label class="btn btn-outline-secondary btn-radio" for="stock_designer">Дизайнерская</label>
+                      </div>
+                    </div>
+                    <!-- Плотность (кнопки-плитки) -->
+                    <div class="mb-3">
+                      <label class="form-label">Плотность бумаги</label>
+                      <div class="btn-group flex-wrap" role="group" aria-label="Плотность бумаги">
+                        <input type="radio" class="btn-check" name="gsm" id="gsm_80" value="80" autocomplete="off">
+                        <label class="btn btn-outline-secondary btn-radio" for="gsm_80">80 г/м²</label>
+                        <input type="radio" class="btn-check" name="gsm" id="gsm_115" value="115" autocomplete="off">
+                        <label class="btn btn-outline-secondary btn-radio" for="gsm_115">115 г/м²</label>
+                        <input type="radio" class="btn-check" name="gsm" id="gsm_150" value="150" autocomplete="off">
+                        <label class="btn btn-outline-secondary btn-radio" for="gsm_150">150 г/м²</label>
+                        <input type="radio" class="btn-check" name="gsm" id="gsm_200" value="200" autocomplete="off">
+                        <label class="btn btn-outline-secondary btn-radio" for="gsm_200">200 г/м²</label>
+                        <input type="radio" class="btn-check" name="gsm" id="gsm_300" value="300" autocomplete="off" checked>
+                        <label class="btn btn-outline-secondary btn-radio" for="gsm_300">300 г/м²</label>
+                      </div>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label">Дополнительно</label>
+                      <div class="btn-group flex-wrap" role="group" aria-label="Финишные опции">
+                        <!-- Ламинация -->
+                        <input type="checkbox" class="btn-check" id="lamination" autocomplete="off">
+                        <label class="btn btn-outline-secondary btn-toggle" for="lamination"> Ламинация <span class="state off">✖️ Выкл</span>
+                          <span class="state on">✅ Вкл</span>
+                        </label>
+                        <!-- Закруглённые углы -->
+                        <input type="checkbox" class="btn-check" id="rounded" autocomplete="off">
+                        <label class="btn btn-outline-secondary btn-toggle" for="rounded"> Углы <span class="state off">✖️ Выкл</span>
+                          <span class="state on">✅ Вкл</span>
+                        </label>
+                      </div>
+                    </div>
+                    <!-- Беговка -->
+                    <div class="mb-3">
+                      <label class="form-label" for="creasing">Беговка</label>
+                      <select id="creasing" class="form-select">
+                        <option value="0">Выкл</option>
+                        <option value="1">1 беговка</option>
+                        <option value="2">2 беговки</option>
+                        <option value="3">3 беговки</option>
+                      </select>
+                    </div>
+                    <!-- Тираж -->
+                    <div class="mb-3">
+                      <label class="form-label">Тираж</label>
+                      <div class="row g-2">
+                        <div class="col-sm-6">
+                          <input id="qty" type="number" class="form-control" min="1" maxlength="10" step="1" value="100" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)||'1'">
+                        </div>
+                        <div class="col-sm-6">
+                          <select id="qtyPreset" class="form-select">
+                            <option value="custom">Произвольно…</option>
+                            <option value="1">1 лист</option>
+                            <option value="10">10 листов</option>
+                            <option value="50">50 листов</option>
+                            <option value="100" selected>100 листов</option>
+                            <option value="200">200 листов</option>
+                            <option value="500">500 листов</option>
+                            <option value="1000">1000 листов</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="form-text">Можно указать <strong>даже 1 лист</strong>. </div>
+                    </div>
+                    <!-- Срок -->
+                    <div class="mb-1">
+                      <label class="form-label" for="urgency">Срок изготовления</label>
+                      <select id="urgency" class="form-select">
+                        <option value="oneday">1-2 рабочих дня</option>
+                        <option value="express">3–5 часов</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Правая колонка: ИТОГО -->
+              <div class="col-lg-4">
+                <!-- ИТОГО как чек -->
+                <div id="totalBlock" class="card receipt border-0" data-updated="">
+                  <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                      <span class="badge text-bg-secondary">ИТОГО</span>
+                      <!-- (опционально: место под номер заказа / дату) -->
+                    </div>
+                    <div class="table-responsive">
+                      <table class="table table-sm align-middle mb-2 receipt-table">
+                        <tbody>
+                          <tr class="table-active">
+                            <td>Тираж</td>
+                            <td class="text-end" id="lineQty">—</td>
+                          </tr>
+                          <tr>
+                            <td>Размер</td>
+                            <td class="text-end" id="lineSize">—</td>
+                          </tr>
+                          <tr>
+                            <td>Печать</td>
+                            <td class="text-end" id="linePrint">—</td>
+                          </tr>
+                          <tr>
+                            <td>Бумага</td>
+                            <td class="text-end" id="lineStock">—</td>
+                          </tr>
+                          <tr>
+                            <td>Плотность</td>
+                            <td class="text-end" id="lineGsm">—</td>
+                          </tr>
+                          <tr id="rowLamination">
+                            <td>Ламинация</td>
+                            <td class="text-end" id="lineLamination">—</td>
+                          </tr>
+                          <tr id="rowCreasing">
+                            <td>Беговка</td>
+                            <td class="text-end" id="lineCreasing">—</td>
+                          </tr>
+                          <tr id="rowRounded">
+                            <td>Углы</td>
+                            <td class="text-end" id="lineRounded">—</td>
+                          </tr>
+                          <tr id="rowDiscount">
+                            <td>Скидка за тираж</td>
+                            <td class="text-end" id="lineDiscount">—</td>
+                          </tr>
+                          <tr>
+                            <td>Срочность</td>
+                            <td class="text-end" id="lineUrgency">—</td>
+                          </tr>
+                          <tr>
+                            <td>Дизайн</td>
+                            <td class="text-end" id="lineDesign">—</td>
+                          </tr>
+                          <tr id="rowPerItem">
+                            <td>Цена за 1 лист</td>
+                            <td class="text-end" id="linePerItem">—</td>
+                          </tr>
+                          <tr class="receipt-total">
+                            <th class="fs-5">Итого к оплате</th>
+                            <th class="text-end fs-5" id="total">—</th>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <div id="eta" class="small text-secondary mt-2"></div>
+                    <!-- кромка чека ВНУТРИ card-body -->
+                    <div class="tearoff mt-2" aria-hidden="true"></div>
+                  </div>
+                </div>
+                <!-- Кнопки — снизу, отдельно от чека -->
+                <div class="mt-3">
+                  <div class="row g-2 mb-2">
+                    <!-- <div class="col-12 col-md-6">
+                      <button id="btnShare" class="btn btn-outline-secondary w-100">Поделиться</button>
+                    </div> -->
+                    <div class="col-12 col-md-6">
+                      <button id="btnCopy" class="btn btn-outline-secondary w-100">Скопировать</button>
+                    </div>
+                    <div class="col-12 col-md-6">
+                    <button id="btnDownload" class="btn btn-outline-primary w-100">Сохранить в PDF</button>
+                  </div>
+                  </div>
+                </div>
+                <!-- dev-подсмотр прайса -->
+                <div id="devPricesDetails" class="card mt-3 d-none">
+                  <div class="card-header py-2">Используемые цены</div>
+                  <pre id="priceJson" class="m-0 p-2 small"></pre>
+                </div>
+              </div>
+            </div>
+            <section class="mt-4">
+              <h2 class="h5 mb-3">Что это за опции</h2>
+              <div class="row gy-3">
+                <!-- Дизайнерская бумага -->
+                <div class="col-md-6">
+                  <div class="d-flex gap-3 align-items-start p-3 border rounded-3">
+                    <!-- icon: текстура/узор -->
+                    <svg width="40" height="40" viewBox="0 0 24 24" class="text-body" fill="none" aria-hidden="true">
+                      <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5" />
+                      <path d="M6 8l2-2m2 2l2-2m2 2l2-2M6 14l2-2m2 2l2-2m2 2l2-2M6 18l2-2m2 2l2-2m2 2l2-2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+                    </svg>
+                    <div>
+                      <div class="fw-semibold">Дизайнерская бумага</div>
+                      <div class="small text-secondary"> Премиальная бумага с фактурой/покрытием (SoftTouch, «лён»). Даёт выразительный вид и приятные тактильные ощущения. </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="d-flex gap-3 align-items-start p-3 border rounded-3">
+                    <!-- icon: стопка листов с маркировкой -->
+                    <svg width="40" height="40" viewBox="0 0 24 24" class="text-body" fill="none" aria-hidden="true">
+                      <rect x="4" y="6" width="16" height="10" rx="2" stroke="currentColor" stroke-width="1.5" />
+                      <path d="M6 8h6m-6 4h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                      <path d="M5 18h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                    </svg>
+                    <div>
+                      <div class="fw-semibold">Плотность бумаги</div>
+                      <div class="small text-secondary"> Указывает толщину и жёсткость листа в г/м² (например, 80, 115, 150, 200, 300 г/м²). Чем выше значение, тем плотнее и «солиднее» изделие. </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Ламинация -->
+                <div class="col-md-6">
+                  <div class="d-flex gap-3 align-items-start p-3 border rounded-3">
+                    <!-- icon: слои/плёнка -->
+                    <svg width="40" height="40" viewBox="0 0 24 24" class="text-body" fill="none" aria-hidden="true">
+                      <path d="M12 3l9 5-9 5L3 8l9-5Z" stroke="currentColor" stroke-width="1.5" fill="none" />
+                      <path d="M21 13l-9 5-9-5" stroke="currentColor" stroke-width="1.5" fill="none" />
+                      <path d="M21 18l-9 5-9-5" stroke="currentColor" stroke-width="1.5" fill="none" />
+                    </svg>
+                    <div>
+                      <div class="fw-semibold">Ламинация</div>
+                      <div class="small text-secondary"> Тонкая защитная плёнка (мат/глянец): защита от влаги и истирания, изделие становится плотнее и долговечнее. </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Скруглённые углы -->
+                <div class="col-md-6">
+                  <div class="d-flex gap-3 align-items-start p-3 border rounded-3">
+                    <!-- icon: карточка с радиусом -->
+                    <svg width="40" height="40" viewBox="0 0 24 24" class="text-body" fill="none" aria-hidden="true">
+                      <path d="M6 5h8a5 5 0 0 1 5 5v6a3 3 0 0 1-3 3H8a5 5 0 0 1-5-5V8a3 3 0 0 1 3-3Z" stroke="currentColor" stroke-width="1.5" fill="none" />
+                      <path d="M7 9h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                    </svg>
+                    <div>
+                      <div class="fw-semibold">Скруглённые углы</div>
+                      <div class="small text-secondary"> Округлые углы (обычно 3–5&nbsp;мм): меньше заломов, безопаснее и аккуратнее визуально. </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Беговка -->
+                <div class="col-md-6">
+                  <div class="d-flex gap-3 align-items-start p-3 border rounded-3">
+                    <!-- icon: линия сгиба -->
+                    <svg width="40" height="40" viewBox="0 0 24 24" class="text-body" fill="none" aria-hidden="true">
+                      <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.5" fill="none" />
+                      <path d="M12 4v16" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2" />
+                      <path d="M9 12l-2 2m10-2l2 2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+                    </svg>
+                    <div>
+                      <div class="fw-semibold">Беговка</div>
+                      <div class="small text-secondary"> Продавливание линии сгиба на плотной бумаге — сгибается ровно, без трещин краски. </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
           </div>
-
-          <div class="table-responsive">
-            <table class="table table-sm align-middle mb-2">
-              <tbody>
-                <tr><td>Размер</td><td class="text-end" id="lineSize">—</td></tr>
-                <tr><td>Печать</td><td class="text-end" id="linePrint">—</td></tr>
-                <tr><td>Бумага</td><td class="text-end" id="lineStock">—</td></tr>
-                <tr><td>Плотность</td><td class="text-end" id="lineGsm">—</td></tr>
-
-                <tr id="rowLamination"><td>Ламинация</td><td class="text-end" id="lineLamination">—</td></tr>
-                <tr id="rowCreasing"><td>Беговка</td><td class="text-end" id="lineCreasing">—</td></tr>
-                <tr id="rowRounded"><td>Углы</td><td class="text-end" id="lineRounded">—</td></tr>
-
-                <tr class="table-active"><td>Тираж</td><td class="text-end" id="lineQty">—</td></tr>
-
-                <tr id="rowDiscount"><td>Скидка за тираж</td><td class="text-end" id="lineDiscount">—</td></tr>
-                <tr><td>Срочность</td><td class="text-end" id="lineUrgency">—</td></tr>
-                <tr><td>Дизайн</td><td class="text-end" id="lineDesign">—</td></tr>
-
-                <tr><th class="fs-5">Итого к оплате</th><th class="text-end fs-5" id="total">—</th></tr>
-              </tbody>
-
-            </table>
-          </div>
-
-
-          <div id="eta" class="small text-secondary"></div>
-        </div>
-
-        
-
-
+        </main>
+        <script>
+          function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('collapsed');
+          }
+        </script>
       </div>
+      <!-- Bootstrap 5 (JS bundle) — ДОЛЖЕН идти до твоих скриптов -->
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+      <!-- jQuery (если используешь в своём коде; не обязателен для Bootstrap 5) -->
+      <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+      <!-- Твоя логика для Листовок -->
+      <script src="./common.js"></script>
+      <script src="./leaflets.js"></script>
+      <script>
+        // Установит сохранённую тему или light по умолчанию и повесит обработчик на кнопку
+        Common.initTheme({
+          defaultTheme: 'light',
+          buttonId: 'themeToggle',
+          labelId: 'themeLabel'
+        });
+      </script>
 
-      <!-- dev-подсмотр прайса -->
-      <div id="devPricesDetails" class="card mt-3 d-none">
-        <div class="card-header py-2">Используемые цены</div>
-        <pre id="priceJson" class="m-0 p-2 small"></pre>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<!-- Bootstrap 5 (JS bundle) — ДОЛЖЕН идти до твоих скриптов -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-
-<!-- jQuery (если используешь в своём коде; не обязателен для Bootstrap 5) -->
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
-<!-- Переключатель темы (Bootstrap 5.3 data-bs-theme) -->
-<script>
-  (function () {
-    const STORAGE_KEY = 'bsTheme';
-    const root = document.documentElement; // <html>
-    const saved = localStorage.getItem(STORAGE_KEY) || 'light';
-    root.setAttribute('data-bs-theme', saved);
-    const label = document.getElementById('themeLabel');
-    if (label) label.textContent = saved === 'dark' ? 'Dark' : 'Light';
-
-    const btn = document.getElementById('themeToggle');
-    if (btn) {
-      btn.addEventListener('click', () => {
-        const next = root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
-        root.setAttribute('data-bs-theme', next);
-        localStorage.setItem(STORAGE_KEY, next);
-        if (label) label.textContent = next === 'dark' ? 'Dark' : 'Light';
-      });
-    }
-  })();
-</script>
-
-<!-- Твоя логика для Листовок -->
-<script src="./leaflets.js"></script>
-</body>
+  </body>
 </html>

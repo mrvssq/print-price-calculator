@@ -16,9 +16,9 @@ html.theme-transition * {
 /* ---------- Карточки и таблицы: уважаем тему Bootstrap ---------- */
 .card {
   border-color: var(--bs-border-color);
-  background-color: var(--bs-body-bg);
+  background-color: var(--bs-card-bg); /* ← ВАЖНО: фон карточки = card-bg */
   color: var(--bs-body-color);
-  box-shadow: none; /* на вкус, оставим плоские карточки */
+  box-shadow: none;
 }
 .card .card-header {
   background-color: var(--bs-tertiary-bg);
@@ -62,6 +62,44 @@ html.theme-transition * {
    ========================================================================== */
 /* Печатаем только #totalBlock, сверху страницы, без пустот */
 @media print {
+  #totalBlock .tearoff { display: none !important; }
+
+  /* чек и рамки контрастные */
+  #totalBlock.receipt {
+    background-color: #fff !important;
+    color: #000 !important;
+    border-color: #000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* обнуляем таблицу и переменные Bootstrap */
+  #totalBlock.receipt .table {
+    --bs-table-bg: #fff;
+    --bs-table-striped-bg: #fff;
+    --bs-table-hover-bg: #fff;
+    --bs-table-active-bg: #fff;
+    background-color: #fff !important;
+  }
+
+  /* ВАЖНО: белим фон ВСЕХ ячеек (thead/tbody/tfoot), максимально специфично */
+  #totalBlock.receipt .table thead tr > th,
+  #totalBlock.receipt .table tbody tr > th,
+  #totalBlock.receipt .table tfoot tr > th,
+  #totalBlock.receipt .table thead tr > td,
+  #totalBlock.receipt .table tbody tr > td,
+  #totalBlock.receipt .table tfoot tr > td {
+    background-color: #fff !important;  /* перекрывает твой var(--receipt-bg) !important */
+    background: #fff !important;        /* на всякий случай, если где-то задан background */
+    color: #000 !important;
+    border-color: #000 !important;
+  }
+
+  /* строка .table-active тоже чисто белая */
+  #totalBlock.receipt .table .table-active > * {
+    background-color: #fff !important;
+  }
+
   @page { margin: 12mm; } /* при желании подстрой поля */
 
   html, body {
@@ -101,4 +139,187 @@ html.theme-transition * {
    ========================================================================== */
 @media (max-width: 575.98px) {
   .table { font-size: .95rem; }
+}
+
+/* --- Чек-стили для totalBlock --- */
+.receipt {
+  border: 1px dashed var(--bs-border-color);
+  box-shadow: none;
+  border-radius: .5rem;
+  background: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  font-feature-settings: "tnum" 1, "lnum" 1; /* табличные цифры */
+}
+.receipt .table {
+  margin-bottom: .25rem;
+}
+.receipt .table td,
+.receipt .table th {
+  border-color: var(--bs-border-color);
+  padding-top: .35rem;
+  padding-bottom: .35rem;
+}
+.receipt .table-active > * {
+  background-color: var(--bs-tertiary-bg) !important;
+}
+
+/* тонкая «перфорация» */
+.receipt-perf {
+  height: 10px;
+  background:
+    radial-gradient(circle at 6px 5px, var(--bs-border-color) 2px, transparent 2.5px) left top / 12px 10px repeat-x;
+  border-top: 1px dashed var(--bs-border-color);
+  opacity: .8;
+}
+
+/* скидку, если ты красишь её в JS, можно сделать жирнее/зелёной (поддержка тем) */
+#rowDiscount #lineDiscount {
+  color: var(--bs-success-text-emphasis, #198754);
+  font-weight: 600;
+}
+
+/* Печать остаётся как вы настраивали (только totalBlock), без изменений */
+
+#total {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: .2px;
+}
+
+/* Кнопки-радио: компактно по умолчанию, стандартно на lg+ */
+.btn-radio {
+  --bs-btn-padding-y: .3rem;
+  --bs-btn-padding-x: .6rem;
+  --bs-btn-font-size: .875rem;     /* ~sm */
+  --bs-btn-border-radius: .375rem; /* чуть покрупнее, удобно тапать */
+}
+
+/* На больших экранах — стандартные размеры */
+@media (min-width: 992px) { /* lg */
+  .btn-radio {
+    --bs-btn-padding-y: .5rem;
+    --bs-btn-padding-x: 1rem;
+    --bs-btn-font-size: 1rem;      /* стандарт */
+    --bs-btn-border-radius: .375rem;
+  }
+}
+
+/* Компактные кнопки-«тумблеры», дружат с темами Bootstrap */
+.btn-toggle {
+  --bs-btn-padding-y: .3rem;
+  --bs-btn-padding-x: .6rem;
+  --bs-btn-font-size: .875rem;
+  --bs-btn-border-radius: .375rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+}
+
+/* Показ состояния: по умолчанию off виден, on скрыт */
+.btn-toggle .state.on  { display: none; color: var(--bs-success-text-emphasis, #198754); font-weight: 600; }
+.btn-toggle .state.off { display: inline; color: var(--bs-secondary-color); }
+
+/* Когда чекбокс включён — меняем видимость */
+.btn-check:checked + .btn-toggle .state.on  { display: inline; }
+.btn-check:checked + .btn-toggle .state.off { display: none; }
+
+/* На больших экранах — чуть крупнее (как просили для «ПК») */
+@media (min-width: 992px) {
+  .btn-toggle {
+    --bs-btn-padding-y: .45rem;
+    --bs-btn-padding-x: .9rem;
+    --bs-btn-font-size: 1rem;
+  }
+}
+
+/* Чек: фон/рамка с лёгким контрастом и БЕЗ нижней прямой линии */
+/* переменные "чека" — уже есть у тебя */
+#totalBlock.receipt{
+  --receipt-bg: color-mix(in oklab, var(--bs-body-bg) 88%, #000 12%);
+  --receipt-border: color-mix(in oklab, var(--bs-border-color) 85%, #000 15%);
+  background: var(--receipt-bg);
+  border: 1px solid var(--receipt-border);
+  border-bottom-color: transparent; /* снизу нет прямой линии */
+  border-radius: .5rem;
+  position: relative;
+  color: var(--bs-body-color);
+}
+[data-bs-theme="dark"] #totalBlock.receipt{
+  --receipt-bg: color-mix(in oklab, var(--bs-body-bg) 85%, #fff 15%);
+  --receipt-border: color-mix(in oklab, var(--bs-border-color) 80%, #fff 20%);
+}
+
+/* табличные ячейки в цвет чека, линии читаемы */
+#totalBlock.receipt .table{ background: transparent; --bs-table-bg: transparent; }
+#totalBlock.receipt .table > :not(caption) > * > *{
+  background-color: var(--receipt-bg) !important;
+  border-color: var(--receipt-border) !important;
+}
+#totalBlock.receipt .table .table-active > *{
+  background-color: color-mix(in oklab, var(--receipt-bg) 92%, #000 8%) !important;
+}
+
+/* место под обрыв (чтобы кнопки не налезали) */
+#totalBlock.receipt .card-body{
+  position: relative;
+  padding-bottom: calc(var(--bs-card-spacer-y, 1rem) + 14px);
+}
+
+/* === ОБРЫВ «старый билет»: полукруг + короткая ровная часть === */
+#totalBlock .tearoff{
+  position: absolute;
+  /* растягиваем до ВНУТРЕННИХ краёв карточки (с учётом paddings .card-body) */
+  left: calc(-1 * var(--bs-card-spacer-x, 1rem));
+  right: calc(-1 * var(--bs-card-spacer-x, 1rem));
+  bottom: var(--bs-card-spacer-y, 1rem);
+  height: 0;                /* сам блок нулевой высоты */
+  pointer-events: none;
+  --tear-d: 18px;           /* диаметр полукруга */
+  --tear-r: calc(var(--tear-d)/2);
+  --tear-gap: 7px;         /* длина прямого участка между полукругами */
+}
+
+/* сами «дырочки» с зазором (полукруг + gap) — НИЖЕ боковых линий */
+#totalBlock .tearoff::after{
+  content:"";
+  position:absolute;
+  left:0; right:0;
+  top:0;
+  transform: translateY(var(--tear-r));  /* опустить на полрадиуса */
+  height: var(--tear-d);
+  background:
+    radial-gradient(var(--tear-r) var(--tear-r) at var(--tear-r) var(--tear-r),
+      var(--bs-body-bg) var(--tear-r), transparent calc(var(--tear-r) + .1px))
+    0 0 / calc(var(--tear-d) + var(--tear-gap)) var(--tear-d) repeat-x;
+  z-index: 1;  /* под боковыми гранями */
+  filter: drop-shadow(0 1px 0 rgba(0,0,0,.06));
+}
+
+/* === Sidebar width control === */
+:root {
+  /* поменяй значение — и ширина обновится везде */
+  --sidebar-width: 200px;
+}
+
+/* Desktop: фиксируем ширину левой колонки пикселями */
+@media (min-width: 992px) {
+  #sidebarCol {
+    flex: 0 0 var(--sidebar-width) !important;
+    max-width: var(--sidebar-width) !important;
+  }
+  #pageMain {
+    /* пусть контент занимает остаток */
+    flex: 1 1 auto;
+    max-width: calc(100% - var(--sidebar-width)) !important;
+  }
+}
+
+/* Offcanvas: используем ту же переменную */
+#calcOffcanvas {
+  --bs-offcanvas-width: var(--sidebar-width);
+}
+
+/* Печать: сайдбар скрыт, контент на всю ширину */
+@media print {
+  #sidebarCol, .offcanvas { display: none !important; }
+  #pageMain { width: 100% !important; max-width: 100% !important; }
 }
