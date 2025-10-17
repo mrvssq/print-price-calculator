@@ -23,7 +23,7 @@
         "printK": { "single": 1.0, "double": 1.0 } 
       },
       "options": {
-        "laminationMultiplier": 2.0,
+        "laminationMultiplier": 1.4,
         "roundedCornersPerItem": 2.0
       },
       "urgencyK": { "oneday": 1.0, "express": 1.5 },
@@ -35,12 +35,9 @@
       },
 
       "discountByAmount": {
-        "startAmount": 1500,
-        "startRate": 0.05,
-        "midAmount": 4000,
-        "midRate": 0.15,
-        "capAmount": 20000,
-        "capRate": 0.30
+        "startAmount": 1000,  "startRate": 0.05,
+        "midAmount":   20000,  "midRate":   0.4,
+        "capAmount":  30000,  "capRate":   0.5
       }
     },
 
@@ -52,18 +49,18 @@
         "basePerItemSingle": {
           "A6":  { "80": 8, "115": 10, "150": 12, "200": 13, "300": 15 },
           "A5":  { "80": 15, "115": 20, "150": 23, "200": 25, "300": 30 },
-          "A4":  { "80": 30, "115": 40, "150": 45, "200": 50, "300": 60 },
-          "EURO":{"80": 30, "115": 40, "150": 45, "200": 50, "300": 60 },
-          "A3":  { "80": 50, "115": 70, "150": 85, "200":100, "300":120 }
+          "A4":  { "80": 30, "115": 40, "150": 45, "200": 48, "300": 50 },
+          "EURO":{"80": 10, "115": 13, "150": 15, "200": 16, "300": 17 },
+          "A3":  { "80": 50, "115": 70, "150": 85, "200":98, "300":100 }
         },
 
-        "doublePrintMultiplier": 1.40
+        "doublePrintMultiplier": 1.50
       },
 
       "options": {
-        "laminationMultiplier": 1.40,
+        "laminationMultiplier": 1.4,
         "roundedCornersPerItem": 2.0,
-        "creasingPerLine": 3.0,
+        "creasingPerLine": 1.0,
         "designerPaperMultiplier": 1.30
       },
 
@@ -72,9 +69,9 @@
       "qtyRules": { "min": 1, "pack": 1 },
 
       "discountByAmount": {
-        "startAmount": 1500,  "startRate": 0.05,
-        "midAmount":   4000,  "midRate":   0.15,
-        "capAmount":  20000,  "capRate":   0.30
+        "startAmount": 1000,  "startRate": 0.1,
+        "midAmount":   15000,  "midRate":   0.5,
+        "capAmount":  30000,  "capRate":   0.6
       }
     }
   }
