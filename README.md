@@ -1,3 +1,7 @@
+Работающий пример:
+Визитки https://multiserwis.ru/calc/business-cards.html
+Листовки https://multiserwis.ru/calc/leaflets.html
+
 # README — как редактировать `prices.json`
 
 Этот файл описывает цены и правила расчёта для всех калькуляторов (листовки, визитки и т.д.).  
