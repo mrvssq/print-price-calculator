@@ -60,9 +60,9 @@ function readState(){
     stock:    pick('stock',  null, 'gloss'),
     gsm:      pick('gsm',    null, '300'),
 
-    lamination: $('#lamination').is(':checked'),
-    creasing:   parseInt($('input[name="creasing"]:checked').val() ?? $('#creasing').val() ?? '0', 10) || 0,
-    rounded:    $('#rounded').is(':checked'),
+    lam: $('#lamination').is(':checked'),
+    cr:   parseInt($('input[name="creasing"]:checked').val() ?? $('#creasing').val() ?? '0', 10) || 0,
+    rnd:    $('#rounded').is(':checked'),
 
     qty: Math.max(1, num($('#qty').val())),
     urgency: pick('urgency', '#urgency', 'oneday')
@@ -77,11 +77,11 @@ function applyStateToUI(s){
   check('design', s.design); check('size', s.size); check('print', s.print);
   check('stock', s.stock);   check('gsm', s.gsm);
 
-  if ($('input[name="creasing"]').length) check('creasing', String(s.creasing));
-  else $('#creasing').val(String(s.creasing));
+  if ($('input[name="creasing"]').length) check('creasing', String(s.cr));
+  else $('#creasing').val(String(s.cr));
 
-  $('#lamination').prop('checked', !!s.lamination);
-  $('#rounded').prop('checked',   !!s.rounded);
+  $('#lamination').prop('checked', !!s.lam);
+  $('#rounded').prop('checked',   !!s.rnd);
 
   $('#qty').val(s.qty);
   const preset=[1,10,50,100,200,500,1000].includes(s.qty)?String(s.qty):'custom';
@@ -99,9 +99,9 @@ function queryToState(){
     stock:    q.get('stock')   || DEFAULTS.stock,
     gsm:      q.get('gsm')     || DEFAULTS.gsm,
 
-    lamination: truthy(q.get('lam')),
-    rounded:    truthy(q.get('rnd')),
-    creasing:   q.get('cr') ? Math.max(0, parseInt(q.get('cr'),10) || 0) : DEFAULTS.cr,
+    lam: truthy(q.get('lam')),
+    rnd:    truthy(q.get('rnd')),
+    cr:   q.get('cr') ? Math.max(0, parseInt(q.get('cr'),10) || 0) : DEFAULTS.cr,
 
     qty:     q.get('qty') ? Math.max(1, parseInt(q.get('qty'),10)||1) : DEFAULTS.qty,
     urgency: q.get('urgency') || DEFAULTS.urgency
@@ -136,9 +136,9 @@ function stateToQuery(s){
   if (s.urgency !== DEFAULTS.urgency) q.set('urgency', s.urgency); else q.delete('urgency');
 
   // Флаги и числа
-  s.lamination ? q.set('lam','1') : q.delete('lam');
-  s.rounded    ? q.set('rnd','1') : q.delete('rnd');
-  (s.creasing||0) > 0 ? q.set('cr', String(s.creasing)) : q.delete('cr');
+  s.lam ? q.set('lam','1') : q.delete('lam');
+  s.rnd    ? q.set('rnd','1') : q.delete('rnd');
+  (s.cr||0) > 0 ? q.set('cr', String(s.cr)) : q.delete('cr');
 
   return q.toString();
 }
@@ -264,12 +264,12 @@ function computeTotal(s){
 
   // Мультипликаторы (без дизайна/срочности)
   const printK = (s.print === 'double') ? +(B.doublePrintMultiplier ?? 1.40) : 1.0;
-  const lamK   = s.lamination ? +(O.laminationMultiplier ?? 1.40) : 1.0;
+  const lamK   = s.lam ? +(O.laminationMultiplier ?? 1.40) : 1.0;
   const stockK = (s.stock === 'designer') ? +(O.designerPaperMultiplier ?? 1.30) : 1.0; // gloss/matte = 1
 
   // Поштучные надбавки
-  const roundedAddPerItem  = s.rounded ? +(O.roundedCornersPerItem ?? 2.0) : 0;
-  const creasingAddPerItem = (+(O.creasingPerLine ?? 3.0)) * (s.creasing || 0);
+  const roundedAddPerItem  = s.rnd ? +(O.roundedCornersPerItem ?? 2.0) : 0;
+  const creasingAddPerItem = (+(O.creasingPerLine ?? 3.0)) * (s.cr || 0);
 
   // Цена за 1 лист выбранного формата (без дизайна/срочности)
   const perItemRaw = baseSingle * stockK * printK * lamK + roundedAddPerItem + creasingAddPerItem;
@@ -348,8 +348,8 @@ function recalc(){
   $('#lineStock').text({gloss:'Глянцевая',matte:'Матовая',designer:'Дизайнерская'}[s.stock]);
   $('#lineGsm').text(`${s.gsm} г/м²`);
 
-  $('#rowLamination').toggle(!!s.lamination);
-  if (s.lamination) $('#lineLamination').text('Включено');
+  $('#rowLamination').toggle(!!s.lam);
+  if (s.lam) $('#lineLamination').text('Включено');
 
   const cre = s.creasing || 0;
   $('#rowCreasing').toggle(cre > 0);
@@ -358,8 +358,8 @@ function recalc(){
     $('#lineCreasing').text(`${cre} ${word}`);
   }
 
-  $('#rowRounded').toggle(!!s.rounded);
-  if (s.rounded) $('#lineRounded').text('Включено');
+  $('#rowRounded').toggle(!!s.rnd);
+  if (s.rnd) $('#lineRounded').text('Включено');
 
   $('#lineQty').text(`${r.qty} лист.`);
 
@@ -415,7 +415,7 @@ function runTests(){
   try{
     // Базовый кейс: A6, gsm=80, односторонняя, глянец/матт, без допов
     const base={design:'none', size:'A6', print:'single', stock:'gloss', gsm:'80',
-                lamination:false, creasing:0, rounded:false, qty:10, urgency:'oneday'};
+                lam:false, cr:0, rnd:false, qty:10, urgency:'oneday'};
 
     const r = computeTotal(base);
     const baseMatrix = CONF.base?.basePerItem || {};
@@ -431,7 +431,7 @@ function runTests(){
     }
 
     // Ламинация должна увеличивать perItem (по laminationMultiplier)
-    const rLam = computeTotal({...base, lamination:true});
+    const rLam = computeTotal({...base, lam:true});
     if (!(rLam.perItem > r.perItem)) throw new Error('lamination multiplier failed');
 
     // Дизайнерская бумага должна увеличивать perItem (designerPaperK)
@@ -439,13 +439,13 @@ function runTests(){
     if (!(rDesigner.perItem > r.perItem)) throw new Error('designer paper multiplier failed');
 
     // Скругление углов +2 руб/лист
-    const rRounded = computeTotal({...base, rounded:true});
+    const rRounded = computeTotal({...base, rnd:true});
     if (!(rRounded.perItem - r.perItem >= (CONF.options?.roundedCornersPerItem ?? 2) - 1e-6)) {
       throw new Error('rounded add failed');
     }
 
     // Беговка: +3 руб/линия (по умолчанию)
-    const rCreasing = computeTotal({...base, creasing:3});
+    const rCreasing = computeTotal({...base, cr:3});
     const expAdd = (CONF.options?.creasingPerLine ?? 3) * 3;
     if (!(rCreasing.perItem - r.perItem >= expAdd - 1e-6)) {
       throw new Error('creasing add failed');
