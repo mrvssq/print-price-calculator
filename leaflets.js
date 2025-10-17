@@ -369,7 +369,8 @@ function recalc(){
     $('#lineDiscount').text(`− ${fmtMoney(r.discountValue)} (${Math.round(r.discount*100)}%)`).addClass('text-success fw-semibold');
   }
 
-  $('#linePerItem').text(fmtMoney(r.perItem));
+  const perItemAfterDiscount = r.qty > 0 ? (r.afterDiscount / r.qty) : 0;
+  $('#linePerItem').text('~' + fmtMoney(perItemAfterDiscount));
 
   $('#lineUrgency').text(
     s.urgency==='express'

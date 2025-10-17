@@ -319,7 +319,8 @@
 
     $('#lineUrgency').text(s.urgency === 'express' ? '3–5 часов +50%' : '1–2 рабочих дня');
 
-    $('#linePerItem').text(fmtMoney(r.perItem));
+    const perItemAfterDiscount = r.qty > 0 ? (r.afterDiscount / r.qty) : 0;
+    $('#linePerItem').text('~' + fmtMoney(perItemAfterDiscount));
 
     // Дизайн: цена только если > 0, иначе прочерк
     if (r.designFee > 0) {
