@@ -1,5 +1,7 @@
-Работающий пример:
+Работающие примеры:
+
 Визитки https://multiserwis.ru/calc/business-cards.html
+
 Листовки https://multiserwis.ru/calc/leaflets.html
 
 # README — как редактировать `prices.json`
